@@ -6,7 +6,8 @@ this information as a new block to the snapshot file. The writing is general
 enough so that these functions can be used to add any block to the snapshot,
 not just ICL/BCG labels. 
 
-
+## Example code
+```
 import ICL_block as b
 import RF_ICL_BCG as RF
 import numpy as np
@@ -25,3 +26,4 @@ block = b.create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path ="/e/oc
 b.add_block("ICL ", block, "/e/ocean2/users/imarini/10x/4Antonio", "/e/ocean2/users/imarini/10x/4Antonio/snapdir_092_prove/", parttype=4)
 
 print ("done")
+```
