@@ -4,7 +4,7 @@ import numpy as np
 import Gadget as g
 import os
 import shutil
-import RF_ICL_BCG as RF
+import RandomForest as RF
 import pandas as pd
 
 def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = 92,  physicals = None ):
