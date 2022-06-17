@@ -6,6 +6,8 @@ this information as a new block to the snapshot file. The writing is general
 enough so that these functions can be used to add any block to the snapshot,
 not just ICL/BCG labels. 
 
+The Best_Model-Random-3par.pkl is too heavy to be uploaded on git hub and it is available if asked via e-mail.
+
 ## Example code
 ```
 import ICL_block as b
