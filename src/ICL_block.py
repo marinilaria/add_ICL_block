@@ -9,7 +9,7 @@ import shutil
 import RF_ICL_BCG as RF
 import pandas as pd
 
-def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = '092',  physicals = None ):
+def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = 92,  physicals = None ):
     '''
     This function returns the ICL (or BCG) ids in a given simulation. 
     Parameters:
@@ -19,7 +19,7 @@ def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = '092',  physic
     to the ICL ids: first one is the ICL, second is the BCG. If read_value is False, read the path 
     where simulations are contained (before snapdir/groups level). Default is None.
     :: iFOF :: (int) number of fof to select
-    :: snapnumber :: (str, 3 characters) number of snapshot. Default is '092'.
+    :: snapnumber :: (integer) number of snapshot. Default is 92.
     :: physicals :: (dict) additional properties to get from the simulations. This
     dictionary can be created by the user or can be obtained by running
     create_physicals_dictionary(...)
@@ -40,7 +40,7 @@ def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = '092',  physic
         
     return index_ICL_ids, index_BCG_ids
 
-def create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path, snapnumber = '092', positional = True, parttype = 4):
+def create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path, snapnumber = 92, positional = True, parttype = 4):
 
     ''' 
     This function creates an ICL_array containing the classification of particles in the simulation: 
@@ -51,6 +51,7 @@ def create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path, snapnumber =
     :: ICL_ids :: (array: uint32/int32) ids of the particles in the ICL
     :: BCG_ids :: (array: uint32/int32) ids of the particles in the BCG
     :: base_path :: (str) where simulations are contained, up to the snapdir level
+    :: snapnumber :: (integer) snapshot number 
     :: positional :: if False, ICL_ids and BCG_ids are providing the indices of the particles
     as ordered in the simulations. If True, ICL_ids and BCG_ids are providing the IDS of this particles
     that still need to be matched to the IDS in the simulation. Default is True
@@ -63,7 +64,7 @@ def create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path, snapnumber =
         ids = g.read_block(snapname, "ID", parttype = parttype)
 
     except:
-        snapshot = '/snapdir_{0}/snap_{0}'.format(snapnumber)
+        snapshot = '/snapdir_{0:03}/snap_{0:03}'.format(snapnumber)
         snapname = base_path + snapshot
         ids = g.read_block(snapname, "ID", parttype = parttype)                            
     
@@ -86,7 +87,7 @@ def create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path, snapnumber =
     return class_array
 
 
-def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumber = '092', dim = 1):
+def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumber = 92, dim = 1):
     '''
     This function adds a block to an exisisting snapshot file (format 2) from Gadget.
     At the moment it works only for parttype = -1, due to some conflicts in g3read routine. Check for
@@ -101,7 +102,7 @@ def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumb
     :: base_save_path :: (str) where new snapshots will be saved, up to the snapdir level
     :: parttype ::  (int) to which type of particle assign the data, options: -1 (all)
     or either one from [0,5]
-    :: snapnumber :: (str: 3 characters) the snapshot number
+    :: snapnumber :: (int) the snapshot number
     :: dim :: (int) if the dimension of the data is different than 1 (e.g. pos would have dim = 3)
     '''
     try :
@@ -114,7 +115,7 @@ def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumb
         snapshot_files = np.sort(snapshot_files[mask])
         
     except:
-        snapshot = '/snapdir_{0}/snap_{0}'.format(snapnumber)
+        snapshot = '/snapdir_{0:03}/snap_{0:03}'.format(snapnumber)
         snapname = base_path + snapshot
         snapshot_files = np.array(glob.glob(snapname + '*'))
         
@@ -146,20 +147,3 @@ def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumb
         f.write_block(blockname, parttype, data[start:start + npart])        
         start += npart
     return
-
-#TEST FUNCTION
-#NOTE: at the moment works only for parttype = -1
-'''if __name__ == "__main__":
-    blockname = "ICL "
-    snapnumber = "092"
-    base_snap_path = "./snapdir_{}/".format(snapnumber)
-    base_save_path = "./snapdir_{}_prove/".format(snapnumber)
-    parttype = -1
-    numparticles = len(g.read_block(base_snap_path + "snap_{}".format(snapnumber), "MASS", parttype = parttype))
-    data = np.ones(numparticles, dtype = np.float32)
-    dim = 1
-    add_block(blockname, data, parttype, base_snap_path, base_save_path, snapnumber = snapnumber, dim = dim)
-    filename = base_save_path + "snap_{}".format(snapnumber)
-    
-    print (g.read_block(filename, blockname, parttype = parttype))
-'''
