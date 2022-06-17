@@ -1,10 +1,5 @@
-import sys
-sys.path.append("/home/moon/imarini/MODULES")
-#from g3read import g3read as g3
-#import glob
 import numpy as np
 import Gadget as g
-#import os
 import joblib
 import pandas as pd
 import warnings
