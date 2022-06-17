@@ -16,14 +16,14 @@ import numpy as np
 
 #dictionary = RF.create_physicals_dictionary(["MCRI","RCRI"], [False, False])
 
-#input_features, phys = RF.data_preparation("/e/ocean2/users/imarini/10x/4Antonio", iFOF = 0, physicals = dictionary)
+#input_features, phys = RF.data_preparation("dir/", iFOF = 0, physicals = dictionary)
 #classification = model.predict(input_features)
 
-index_ICL_ids, index_BCG_ids = b.get_ids(base_path = "/e/ocean2/users/imarini/10x/4Antonio", read_value=False)
+index_ICL_ids, index_BCG_ids = b.get_ids(base_path = "dir/", read_value=False)
 
-block = b.create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path ="/e/ocean2/users/imarini/10x/4Antonio", snapnumber = '092', positional = True)
+block = b.create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path ="dir/", snapnumber = '092', positional = True)
 
-b.add_block("ICL ", block, "/e/ocean2/users/imarini/10x/4Antonio", "/e/ocean2/users/imarini/10x/4Antonio/snapdir_092_prove/", parttype=4)
+b.add_block("ICL ", block, "dir/", "snapdir_new/", parttype=4)
 
 print ("done")
 ```
