@@ -1,5 +1,3 @@
-import sys
-sys.path.append("/home/moon/imarini/MODULES")
 from g3read import g3read as g3
 import glob
 import numpy as np
