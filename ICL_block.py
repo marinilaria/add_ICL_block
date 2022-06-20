@@ -117,32 +117,39 @@ def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumb
         #save only snapshot files
         mask = np.array([string[-1].isdigit() for string in snapshot_files])
         snapshot_files = np.sort(snapshot_files[mask])
+        snapshot = np.array([os.path.basename(os.path.normpath(s)) for s in snapshot_files])
+
         
     except:
         snapshot = '/snapdir_{0:03}/snap_{0:03}'.format(snapnumber)
+        dirs = '/snapdir_{0:03}/'.format(snapnumber)
+        if not os.path.exists(base_save_path + dirs):
+            os.makedirs(base_save_path + dirs)
+
         snapname = base_path + snapshot
         snapshot_files = np.array(glob.glob(snapname + '*'))
         
         #save only snapshot files
         mask = np.array([string[-1].isdigit() for string in snapshot_files])
         snapshot_files = np.sort(snapshot_files[mask])
+        snapshot = np.array([dirs + os.path.basename(os.path.normpath(s)) for s in snapshot_files])
+
 
     #Check size of data
     len_data = len(g.read_block(snapname ,"MASS", parttype = parttype))
     if (len(data)!=len_data):
-        raise SystemExit("The input data is not of the same length as the data in the snapshot for the given particle type(s) ")
-        
+        raise SystemExit("The input data is not of the same length as the data in the snapshot for the given particle type(s) ")        
 
     start = 0
     
-    for snapshot_file in snapshot_files:
+    for snapshot_file, snapshot_name in zip(snapshot_files,snapshot):
         header = g3.GadgetFile(snapshot_file).header
         if (parttype > -1):
             npart = int(header.npart[parttype])
         else:
             npart = int(header.npart.sum())
             
-        filename = base_save_path + os.path.basename(os.path.normpath(snapshot_file))
+        filename = base_save_path + snapshot_name
     
         shutil.copyfile(snapshot_file, filename)
         f = g3.GadgetFile(filename)
