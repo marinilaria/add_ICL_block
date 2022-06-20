@@ -31,7 +31,7 @@ def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = 92,  physicals
         #calculate the model
         input_features, physicals = RF.data_preparation(base_path, iFOF, snapnumber = snapnumber,  physicals = physicals) 
         ids_input_features = physicals["ID  "]
-        model = RF.load_model("Best_Model-Random-3par.pkl")
+        model = RF.load_model(os.path.dirname(os.path.realpath(__file__))+"/Best_Model-Random-3par.pkl")
         classification = model.predict(input_features.values)
         index_ICL_ids = ids_input_features.iloc[classification == 0]
         index_BCG_ids = ids_input_features.iloc[classification == 1]
@@ -57,7 +57,7 @@ def create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path, snapnumber =
     #consistency with Gadget read Giuseppe Murante
 
     try :
-        snapshot = '/snap_' + snapnumber
+        snapshot = '/snap_{0:03}'.format(snapnumber)
         snapname = base_path + snapshot
         ids = g.read_block(snapname, "ID", parttype = parttype)
 
@@ -92,19 +92,25 @@ def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumb
     future updates.
 
     Parameters:
-    :: blockname :: (str: 4characters) the name you want to assign to your block (e.g. : "ICL ")
-    :: data ::      (array) the data you want to assign to the column. Length of the data
+    :: blockname      :: (str: 4characters) the name you want to assign to your block (e.g. : "ICL ")
+    :: data           ::      (array) the data you want to assign to the column. Length of the data
     needs to be consisted with the particle type. This means that if I have N stars, I need
     to assign N values to that particle type.
-    :: base_snap_path :: (str) where simulations are contained, up to the snapdir level
+    :: base_path      :: (str) where simulations are contained, up to the snapdir level
     :: base_save_path :: (str) where new snapshots will be saved, up to the snapdir level
-    :: parttype ::  (int) to which type of particle assign the data, options: -1 (all)
+    :: parttype       :: (int) to which type of particle assign the data, options: -1 (all)
     or either one from [0,5]
-    :: snapnumber :: (int) the snapshot number
-    :: dim :: (int) if the dimension of the data is different than 1 (e.g. pos would have dim = 3)
+    :: snapnumber     :: (int) the snapshot number
+    :: dim            :: (int) if the dimension of the data is different than 1 (e.g. pos would have dim = 3)
     '''
+    
+    #check that blockname is 4 characters
+    if (len(blockname) < 4):
+        blockname = blockname.ljust(4)
+    elif(len(blockname) > 4):
+        blockname = blockname[:4]
     try :
-        snapshot = '/snap_' + snapnumber
+        snapshot = '/snap_{0:03}'.format(snapnumber)
         snapname = base_path + snapshot
         snapshot_files = np.array(glob.glob(snapname + '*'))
         
