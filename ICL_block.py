@@ -1,13 +1,12 @@
-from g3read import g3read as g3
+import g3read.g3read as g3
 import glob
 import numpy as np
 import Gadget as g
 import os
 import shutil
 from . import RandomForest as RF
-import pandas as pd
 
-def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = 92,  physicals = None ):
+def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = 92,  physicals = None, model = None ):
     '''
     This function returns the ICL (or BCG) ids in a given simulation. 
     Parameters:
@@ -21,6 +20,7 @@ def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = 92,  physicals
     :: physicals :: (dict) additional properties to get from the simulations. This
     dictionary can be created by the user or can be obtained by running
     create_physicals_dictionary(...)
+    :: model :: (model random forest) suggested to load once if you have to apply it for multiple files
     '''
     if (read_value == True) :
         #read the files
@@ -31,11 +31,13 @@ def get_ids(base_path, read_value = True,  iFOF = 0, snapnumber = 92,  physicals
         #calculate the model
         input_features, physicals = RF.data_preparation(base_path, iFOF, snapnumber = snapnumber,  physicals = physicals) 
         ids_input_features = physicals["ID  "]
-        model = RF.load_model(os.path.dirname(os.path.realpath(__file__))+"/Best_Model-Random-3par.pkl")
+        if model is None:
+            model = RF.load_model(os.path.dirname(os.path.realpath(__file__))+"/Best_Model-Random-3par.pkl")
         classification = model.predict(input_features.values)
+        print ("classification", classification)
         index_ICL_ids = ids_input_features.iloc[classification == 0]
         index_BCG_ids = ids_input_features.iloc[classification == 1]
-        
+        print ("index_BCG_ids",index_BCG_ids)
     return index_ICL_ids, index_BCG_ids
 
 def create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path, snapnumber = 92, positional = True, parttype = 4):
@@ -81,9 +83,9 @@ def create_ICL_input_block(index_ICL_ids, index_BCG_ids, base_path, snapnumber =
     class_array = -np.ones(len_ids, dtype = np.float32) #all particles
     class_array[mask_BCG] = 1 ##particles BCG == 1
     class_array[mask_ICL] = 0 ##particles ICL == 0
+    print ("icl",class_array)
     
     return class_array
-
 
 def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumber = 92, dim = 1):
     '''
@@ -112,12 +114,14 @@ def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumb
     try :
         snapshot = '/snap_{0:03}'.format(snapnumber)
         snapname = base_path + snapshot
-        snapshot_files = np.array(glob.glob(snapname + '*'))
-        
+        snapshot_files = glob.glob(snapname + '*')
+        snapshot_files.sort(key = lambda x: int(x.split(".")[1])) 
+        snapshot_files = np.array(snapshot_files)
         #save only snapshot files
         mask = np.array([string[-1].isdigit() for string in snapshot_files])
-        snapshot_files = np.sort(snapshot_files[mask])
+        #snapshot_files = np.sort(snapshot_files[mask])
         snapshot = np.array([os.path.basename(os.path.normpath(s)) for s in snapshot_files])
+        len_data = len(g.read_block(snapname ,"MASS", parttype = parttype))
 
         
     except:
@@ -127,22 +131,22 @@ def add_block(blockname, data, base_path, base_save_path, parttype = 4, snapnumb
             os.makedirs(base_save_path + dirs)
 
         snapname = base_path + snapshot
-        snapshot_files = np.array(glob.glob(snapname + '*'))
-        
+        snapshot_files = glob.glob(snapname + '*')
+        snapshot_files.sort(key = lambda x: int(x.split(".")[1])) 
+        snapshot_files = np.array(snapshot_files)
         #save only snapshot files
         mask = np.array([string[-1].isdigit() for string in snapshot_files])
-        snapshot_files = np.sort(snapshot_files[mask])
+        snapshot_files = snapshot_files[mask]
         snapshot = np.array([dirs + os.path.basename(os.path.normpath(s)) for s in snapshot_files])
-
+        len_data = len(g.read_block(snapname ,"MASS", parttype = parttype))
 
     #Check size of data
-    len_data = len(g.read_block(snapname ,"MASS", parttype = parttype))
     if (len(data)!=len_data):
-        raise SystemExit("The input data is not of the same length as the data in the snapshot for the given particle type(s) ")        
+        raise SystemExit("The input data is not of the same length as the data in the snapshot for the given particle type(s) ")
+        
 
     start = 0
-    
-    for snapshot_file, snapshot_name in zip(snapshot_files,snapshot):
+    for snapshot_file,snapshot_name in zip(snapshot_files,snapshot):
         header = g3.GadgetFile(snapshot_file).header
         if (parttype > -1):
             npart = int(header.npart[parttype])
